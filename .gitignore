@@ -1,0 +1,5 @@
+*.code-workspace
+sudoku.txt
+*exe
+*.o
+*.gch
