@@ -28,7 +28,7 @@ Sudoku::Sudoku(ifstream &in){
     board_initial = board;
     //Check if the Sudoku is solvable and fillout possibles
     //Combination of this process saves at least one loop
-    // Possibles are not needed for brute force, but do speed it up
+    //Possibles are not needed for brute force, but do speed it up
     for (uint8_t i = 0; i < SIZE*SIZE; ++i){
         if (board[i].val <= SIZE){
             if (!checkSquare(i)){
@@ -47,7 +47,7 @@ Sudoku::Sudoku(ifstream &in){
                 logical = false;
                 printf("Error: Sudoku cell %u has no possible inputs\n", i);
                 return;
-            }
+            }//TODO: copy this into when possibles are removed to save time.? would require checking its valid and recursively pushing single possibles into a value
             else if (board[i].possible.size() == 1){
                 assignSquare(i, *(board[i].possible.begin()));
             }
@@ -103,14 +103,15 @@ bool Sudoku::checkSquare(const uint8_t index, const uint8_t potential){
     uint8_t col = index % SIZE;
     uint8_t tile = (row / 3)*3 + (col / 3);
 
-    //This should never assign a value to a square that is already solved
+    //BLANK is potential value default and means that index is set value and therfore should
+    //be checked for validity and not changed
     if (potential != BLANK){
         board[index].val = potential;
     }
     
     //compare index to row, col, and tile
     //Returns true if the compared squares are logical
-    auto func = [index] (uint8_t targ_index, vector<square> &board) -> bool {
+    auto func = [index] (uint8_t targ_index, vector<square> &board){
         return board[index].val != board[targ_index].val;
     };
 
@@ -126,17 +127,24 @@ bool Sudoku::checkSquare(const uint8_t index, const uint8_t potential){
 }
 
 bool Sudoku::assignSquare(uint8_t index, uint8_t val){
-    if (val > 0 && val <= SIZE && index < SIZE*SIZE){
+    //Check that val is a valid input at valid index
+    if (val > 0 && val <= BLANK && index < SIZE*SIZE){
         board[index].val = val;
-        board[index].possible.clear();
 
-        auto func = [val] (uint8_t targ_index, vector<square> &board) -> bool {
+        //We want to to keep possibles when backtracking
+        if (solver_type == BACKTRACK){
+            return true;
+        }
+
+        //Since we are assigning a value, no squares associated can have val as a possible
+        auto func = [val] (uint8_t targ_index, vector<square> &board){
             return board[targ_index].removePossible(val);
         };
 
         return eachRow(index, func) && eachCol(index, func) && eachTile(index, func);
     }
     else{
+        printf("Error: Invalid input %u at index %u\n", val, index);
         return false;
     }
 }
@@ -167,7 +175,47 @@ static void print_helper(vector<square> board){
     printf("\n");
 }
 
+bool Sudoku::solve_backtrack(){
+    solver_type = BACKTRACK;
+    //Find the first blank square, if end of board is reached, soduko is solved
+    uint8_t index;
+    auto cur_blank = find_if(board.begin(), board.end(), [] (square s){
+        return s.val == BLANK;
+    });
+
+    if (cur_blank == board.end()){
+        return true;
+    }
+    else{
+        index = cur_blank - board.begin();
+    }
+
+    //Try each possible value
+    for (uint8_t val : board[index].possible){
+        if (checkSquare(index, val) && assignSquare(index, val)){
+            if (solve_backtrack()){
+                return true;
+            }
+            else{
+                assignSquare(index, BLANK);
+            }
+        }
+    }
+    return false;
+}
+
 void Sudoku::print(){
+    printf("\nInput:");
     print_helper(board_initial);
+    printf("\nOutput:");
     print_helper(board);
+}
+
+bool Sudoku::solve(){
+    if (!logical){
+        return false;
+    }
+    else{
+        return solve_backtrack();
+    }
 }

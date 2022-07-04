@@ -10,6 +10,11 @@
 #define SIZE 9 //size of Sudoku
 #define TILE_SIZE 3 //size of a tile
 
+typedef enum {
+    NONE,
+    BACKTRACK
+} SolverType;
+
 using namespace std;
 
 class square {
@@ -41,41 +46,36 @@ class Sudoku {
     Sudoku(ifstream &in);
     bool solve();
     void print();
+
+
     private:
+    SolverType solver_type = NONE;
     
     //Copy of input for comparison after solving
     vector<square> board_initial;
     
-    //ALgroithm functions
-
     //Algorithms that iterate rows, columns, and tiles and perfrom func on each element
     //Return false if func returns false
     bool eachRow(const uint8_t index, function<bool(uint8_t, vector<square>&)> func);
     bool eachCol(const uint8_t index, function<bool(uint8_t, vector<square>&)> func);
     bool eachTile(const uint8_t index, function<bool(uint8_t, vector<square>&)> func);
 
-
-    //End Algorithms
-
     //Combines all the checks into a single function
     //Solved squares are the only time potential is BLANK
     bool checkSquare(uint8_t index, uint8_t potential = BLANK);
 
     //Checks if the square is valid
-    bool checkRow(uint8_t index);//{ return eachRow(index, &valIsValid); };
+    bool checkRow(uint8_t index);
     bool checkCol(uint8_t index);
     bool checkTile(uint8_t index);
 
     //Assigns a value to a square and removes it from possible values of related squares
-    // Returns true if successful
+    //Returns true if successful
     bool assignSquare(uint8_t index, uint8_t val);
 
-    //helper functions for assignSquare
-    //Note they only need to check square.possible until the possible is greater than the val
-    // because the possible values are sorted
-    bool deleteRowPossibles(uint8_t index, uint8_t val);
-    bool deleteColPossibles(uint8_t index, uint8_t val);
-    bool deleteTilePossibles(uint8_t index, uint8_t val);
+
+    //Solve function(s)
+    bool solve_backtrack();
 
     Sudoku operator=(Sudoku s);
 };
