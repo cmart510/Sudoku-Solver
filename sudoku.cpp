@@ -21,8 +21,8 @@ Sudoku::Sudoku(ifstream &in){
     //Right now only used to print at the end of the program
     board_initial = board;
 
-    //Check if the Sudoku is solvable and fillout possibles
-    //Possibles are not needed for brute force, but do speed it up
+    //Check if the Sudoku is solvable and fill out possibles
+    //Possibles are not needed for brute force, but can speed it up
     for (uint8_t i = 0; i < SIZE*SIZE; ++i){
         if (board[i].val <= SIZE){
             if (!checkSquare(i)){
@@ -48,7 +48,6 @@ Sudoku::Sudoku(ifstream &in){
         }
     }
 }
-
 
 bool Sudoku::eachRow(const uint8_t index, const function<bool(uint8_t, vector<square>&)> func){
     uint8_t row = index / SIZE;
@@ -195,7 +194,6 @@ bool Sudoku::solveBacktrack(){
 
     //Try each possible value
     for (uint8_t val : board[index].possible){
-    // for (uint8_t val = 1; val <= SIZE; ++val){
         //Check square checks ensures validity before assigning value
         if (checkSquare(index, val) && assignSquare(index, val)){
             if (solveBacktrack()){
