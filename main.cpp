@@ -6,9 +6,9 @@ int main(){
     input.open("sudoku.txt");
     Sudoku sudoku(input);
     
-    if (!sudoku.logical){
+    if (!sudoku.isLogical()){
         cout << "Error: Sudoku is not valid" << endl;
-        //sudoku.print();
+        sudoku.print();
         return 1;
     }
     //solve Sudoku
