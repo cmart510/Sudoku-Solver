@@ -1,13 +1,9 @@
 #include "sudoku.hpp"
 
 bool square::removePossible(uint8_t val){
-    //Note they only need to check square.possible until the possible is greater than the val
-    for (auto pos = possible.begin(); pos != possible.end() && *pos <= val; ++pos){
-        if (*pos == val){
-            possible.erase(pos);
+    //Note constant time for unordered_set, returns 1 if val is removed, 0 if not
+    if (possible.erase(val))
             return true;
-        }
-    }
     return false;
 }
 Sudoku::Sudoku(ifstream &in){
@@ -28,6 +24,7 @@ Sudoku::Sudoku(ifstream &in){
         return;
     }
     //Copy the input to the initial board
+    //Right now only used to print at the end of the program
     board_initial = board;
     //Check if the Sudoku is solvable and fillout possibles
     //Combination of this process saves at least one loop
@@ -43,7 +40,7 @@ Sudoku::Sudoku(ifstream &in){
         else{ //if the square is blank, fill out possibles
             for (uint8_t j = 1; j <= SIZE; ++j){
                 if (checkSquare(i, j)){
-                    board[i].possible.push_back(j);
+                    board[i].possible.insert(j);
                 }
             }
             if (board[i].possible.size() == 0){
@@ -52,7 +49,7 @@ Sudoku::Sudoku(ifstream &in){
                 return;
             }
             else if (board[i].possible.size() == 1){
-                assignSquare(i, board[i].possible[0]);
+                assignSquare(i, *(board[i].possible.begin()));
             }
         }
     }

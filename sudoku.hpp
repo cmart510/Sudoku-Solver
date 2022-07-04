@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unordered_set>
 #include <fstream>
 #include <vector>
 #include <functional>
@@ -14,12 +15,12 @@ using namespace std;
 class square {
     public:
     uint8_t val = BLANK;
-    vector<uint8_t> possible;
+    unordered_set<uint8_t> possible;
     square() = default;
     square(uint8_t val){
         this->val = val;
     }
-    square(uint8_t val, vector<uint8_t> possible){
+    square(uint8_t val, unordered_set<uint8_t> possible){
         this->val = val;
         this->possible = possible;
     }
