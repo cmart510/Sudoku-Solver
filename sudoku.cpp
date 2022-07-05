@@ -1,7 +1,14 @@
 #include "sudoku.hpp"
 
-Sudoku::Sudoku(ifstream &in){
+Sudoku::Sudoku(ifstream &in, const SolverType solver_type) : solver_type(solver_type) {
+    constructHelper(in);
+}
 
+Sudoku::Sudoku(ifstream &in){
+    constructHelper(in);
+}
+
+void Sudoku::constructHelper(ifstream &in){
     while (in.peek() != EOF && board.size() < SIZE*SIZE){
         char c = in.get();
         //rn limited by using a char.
@@ -162,10 +169,21 @@ void Sudoku::print() const{
 
 //Prints board to stdout
 void Sudoku::printHelper(const vector<square> board) const{
+    printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~");
+    uint8_t rowSplit = -1; //buffer the first increment
     for (uint8_t i = 0; i < board.size(); ++i){
-        if (i % SIZE == 0){
-            printf("\n");
+        if (i % TILE_SIZE == 0 && i != 0){
+            printf("| ");
         }
+        if (i % SIZE == 0){
+            ++rowSplit;
+            if (rowSplit == TILE_SIZE){
+                printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~");
+                rowSplit = 0;
+            }
+            printf("\n| ");
+        }
+        
         if (board[i].val == BLANK){
             printf("%c ", BLANK_STR);
         }
@@ -173,7 +191,7 @@ void Sudoku::printHelper(const vector<square> board) const{
             printf("%u ", board[i].val);
         }
     }
-    printf("\n");
+    printf("|\n~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 }
 
 bool Sudoku::solveBacktrack(){

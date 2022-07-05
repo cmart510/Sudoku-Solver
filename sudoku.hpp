@@ -12,6 +12,7 @@
 
 typedef enum {
     NONE,
+    RULES,
     BACKTRACK
 } SolverType;
 
@@ -47,11 +48,13 @@ class Sudoku {
     public:
     Sudoku() = default;
     Sudoku(ifstream &in);
+    Sudoku(ifstream &in, const SolverType solver_type);
     bool isLogical() const { return logical; }
     void print() const;
     bool solve();
 
     private:
+    void constructHelper(ifstream &in);
     vector<square> board;
     bool logical = true;
 
