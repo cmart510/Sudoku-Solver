@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unordered_set>
 #include <fstream>
 #include <vector>
 #include <functional>
@@ -9,72 +10,75 @@
 #define SIZE 9 //size of Sudoku
 #define TILE_SIZE 3 //size of a tile
 
+typedef enum {
+    NONE,
+    BACKTRACK
+} SolverType;
+
 using namespace std;
 
+//Square class represents a square on the board
 class square {
     public:
     uint8_t val = BLANK;
-    vector<uint8_t> possible;
+    unordered_set<uint8_t> possible;
     square() = default;
-    square(uint8_t val){
+    square(const uint8_t val){
         this->val = val;
     }
-    square(uint8_t val, vector<uint8_t> possible){
+    square(const uint8_t val, const unordered_set<uint8_t> possible){
         this->val = val;
         this->possible = possible;
     }
-    bool removePossible(uint8_t val);
-    square operator=(square s){
+    bool removePossible(const uint8_t val) {
+        if (possible.erase(val))
+            return true;
+        return false;
+    }
+    square operator=(const square s){
         this->val = s.val;
         this->possible = s.possible;
         return *this;
     }
 };
 
+//Sudoku class represents a Sudoku board filled with SIZE*SIZE squares
 class Sudoku {
     public:
-    bool logical = true;
-    vector<square> board;
-
     Sudoku() = default;
     Sudoku(ifstream &in);
+    bool isLogical() const { return logical; }
+    void print() const;
     bool solve();
-    void print();
+
     private:
+    vector<square> board;
+    bool logical = true;
+
+    unsigned int steps = 0;
+    SolverType solver_type = NONE;
     
     //Copy of input for comparison after solving
     vector<square> board_initial;
     
-    //ALgroithm functions
-
     //Algorithms that iterate rows, columns, and tiles and perfrom func on each element
     //Return false if func returns false
-    bool eachRow(const uint8_t index, function<bool(uint8_t, vector<square>&)> func);
-    bool eachCol(const uint8_t index, function<bool(uint8_t, vector<square>&)> func);
-    bool eachTile(const uint8_t index, function<bool(uint8_t, vector<square>&)> func);
+    bool eachRow(const uint8_t index, const function<bool(uint8_t, vector<square>&)> func);
+    bool eachCol(const uint8_t index, const function<bool(uint8_t, vector<square>&)> func);
+    bool eachTile(const uint8_t index, const function<bool(uint8_t, vector<square>&)> func);
 
-
-    //End Algorithms
-
-    //Combines all the checks into a single function
+    //Check if square is valid
     //Solved squares are the only time potential is BLANK
-    bool checkSquare(uint8_t index, uint8_t potential = BLANK);
-
-    //Checks if the square is valid
-    bool checkRow(uint8_t index);//{ return eachRow(index, &valIsValid); };
-    bool checkCol(uint8_t index);
-    bool checkTile(uint8_t index);
+    bool checkSquare(const uint8_t index, const uint8_t potential = BLANK);
 
     //Assigns a value to a square and removes it from possible values of related squares
-    // Returns true if successful
-    bool assignSquare(uint8_t index, uint8_t val);
+    //Returns true if successful
+    bool assignSquare(const uint8_t index, const uint8_t val);
 
-    //helper functions for assignSquare
-    //Note they only need to check square.possible until the possible is greater than the val
-    // because the possible values are sorted
-    bool deleteRowPossibles(uint8_t index, uint8_t val);
-    bool deleteColPossibles(uint8_t index, uint8_t val);
-    bool deleteTilePossibles(uint8_t index, uint8_t val);
+    //Solve function(s)
+    bool solveBacktrack();
 
-    Sudoku operator=(Sudoku s);
+    //Helper functions
+    Sudoku operator=(const Sudoku s);
+    void printHelper(const vector<square> board) const;
 };

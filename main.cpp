@@ -5,18 +5,21 @@ int main(){
     ifstream input;
     input.open("sudoku.txt");
     Sudoku sudoku(input);
-    sudoku.print();
-    if (!sudoku.logical){
+    
+    if (!sudoku.isLogical()){
         cout << "Error: Sudoku is not valid" << endl;
-        //sudoku.print();
+        sudoku.print();
         return 1;
     }
     //solve Sudoku
-    //if (sudoku.solve()){
+    if (sudoku.solve()){
     //    sudoku.print();
-    //}
-    //else{
-    //    cout << "No solution" << endl;
-    //}
+        cout << "Sudoku solved!" << endl;    
+    }
+    else{
+       cout << "No solution" << endl;
+    }
+
+    sudoku.print();
     return 1;
 }
