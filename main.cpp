@@ -1,23 +1,51 @@
 #include "sudoku.hpp"
 
-int main(){
+int main(int argc, char *argv[]){
+
+    string filename = "sudoku.txt";
+    SolverType solver_type = BACKTRACK;
+
+    for (int i = 0; i < argc; ++i){
+        string option = argv[i];
+        if (option == "-f"){
+            filename = argv[i+1];
+        }
+        if (option == "-b"){
+            solver_type = BACKTRACK;
+        }
+        if (option == "-r"){
+            solver_type = RULES;
+        }
+        if (option == "-h"){
+            printf("Usage: %s [-f filename] [-b] [-r]\n", argv[0]);
+            printf("-f filename: specify a file to read in. Default is \"sudoku.txt\"\n");
+            printf("-b: use backtracking\n");
+            printf("-r: use rules (not implemented yet)\n");
+            return 1;
+        }
+    }
+
     //read Sudoku
     ifstream input;
-    input.open("sudoku.txt");
-    Sudoku sudoku(input);
+    printf("Reading in %s\n", filename.c_str());
+    input.open(filename.c_str());
+    if (!input.is_open()){
+        printf("Error: could not open file %s\n", filename.c_str());
+        return 0;
+    }
+    Sudoku sudoku(input, solver_type);
     
     if (!sudoku.isLogical()){
-        cout << "Error: Sudoku is not valid" << endl;
+        printf("Error: Sudoku is not logical\n");
         sudoku.print();
-        return 1;
+        return 0;
     }
     //solve Sudoku
     if (sudoku.solve()){
-    //    sudoku.print();
-        cout << "Sudoku solved!" << endl;    
+        printf("Sudoku solved!\n");
     }
     else{
-       cout << "No solution" << endl;
+        printf("Sudoku is not solvable\n");
     }
 
     sudoku.print();
