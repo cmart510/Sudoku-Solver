@@ -10,7 +10,7 @@ For input, it will only read the first 81 valid characters. Any digit (0-9) or '
 Compile: I have only tested with gcc and clang++
 
 Windows (gcc):
-gcc main.cpp sudoku.hpp sudoku.cpp -lstdc++ -o SudokuSolver.exe
+gcc main.cpp sudoku.cpp -lstdc++ -o SudokuSolver
 
 Mac (clang):
 make build
