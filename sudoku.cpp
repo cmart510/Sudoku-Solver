@@ -198,7 +198,7 @@ void Sudoku::print() const{
     printHelper(board_initial);
     printf("\nOutput:");
     printHelper(board);
-    printf("\nSteps: %u", steps);
+    printf("\nSteps: %u\n", steps);
 }
 
 //Prints board to stdout
