@@ -48,7 +48,7 @@ void Sudoku::constructHelper(ifstream &in){
                 logical = false;
                 printf("Error: Sudoku cell %u has no possible inputs\n", i);
                 return;
-            }//TODO: copy this into when possibles are removed to save time.? would require checking its valid and recursively pushing single possibles into a value
+            }
             else if (board[i].possible.size() == 1){
                 assignSquare(i, *(board[i].possible.begin()));
             }
@@ -61,6 +61,7 @@ bool Sudoku::eachRow(const uint8_t index, const function<bool(uint8_t, vector<sq
     uint8_t col = index % SIZE;
 
     for (uint8_t i = 0; i < SIZE; ++i){
+        //Skip if current square and check function
         if (i != col && !func(row*SIZE + i, board)){
             return false;
         }
@@ -73,6 +74,7 @@ bool Sudoku::eachCol(const uint8_t index, const function<bool(uint8_t, vector<sq
     uint8_t col = index % SIZE;
 
     for (uint8_t i = 0; i < SIZE; ++i){
+        //Skip if current square and check function
         if (i != row && !func(i*SIZE + col, board)){
             return false;
         }
@@ -87,10 +89,13 @@ bool Sudoku::eachTile(const uint8_t index, const function<bool(uint8_t, vector<s
 
     uint8_t tile_index = ((row % TILE_SIZE)*TILE_SIZE + (col %TILE_SIZE)); 
     for (uint8_t i = 0; i < SIZE; ++i){
+        //Location in current tiles
         uint8_t tileRow = i / TILE_SIZE;
         uint8_t tileCol = i % TILE_SIZE;
+        //Location in board
         uint8_t realRow = tileRow + (tile/TILE_SIZE)*TILE_SIZE;
         uint8_t realCol = tileCol + (tile%TILE_SIZE)*TILE_SIZE;
+        //Skip if current square and check function
         if (i != tile_index && !func(realRow*SIZE + realCol, board)){
             return false;
         }
@@ -98,17 +103,11 @@ bool Sudoku::eachTile(const uint8_t index, const function<bool(uint8_t, vector<s
     return true;
 }
 
-bool Sudoku::checkSquare(const uint8_t index, const uint8_t potential){
-    uint8_t row = index / SIZE;
-    uint8_t col = index % SIZE;
-    uint8_t tile = (row / 3)*3 + (col / 3);
-
-    //BLANK is potential value default and means that index is set value and therfore should
-    //be checked for validity and not changed
-    if (potential != BLANK){
-        board[index].val = potential;
+bool Sudoku::checkSquare(const uint8_t index){
+    if (index >= SIZE*SIZE){
+        printf("Error: Index %u is out of bounds\n", index);
+        return false;
     }
-    
     //compare index to row, col, and tile
     //Returns true if the compared squares are logical
     auto func = [index] (uint8_t targ_index, vector<square> &board){
@@ -116,19 +115,44 @@ bool Sudoku::checkSquare(const uint8_t index, const uint8_t potential){
     };
 
     //Check if the square is valid
-    bool valid = eachRow(index, func) && eachCol(index, func) && eachTile(index, func);
+    return eachRow(index, func) && eachCol(index, func) && eachTile(index, func);
+}
+
+bool Sudoku::checkSquare(const uint8_t index, const uint8_t potential){
+    if (index >= SIZE*SIZE){
+        printf("Error: Index %u is out of bounds\n", index);
+        return false;
+    }
+    if (potential > SIZE){
+        printf("Error: Potential %u is out of bounds\n", potential);
+        return false;
+    }
+    //Only change the square if it is blank
+    if (board[index].val != BLANK){
+        return false;
+    }
+    //Set test value
+    board[index].val = potential;
+    
+    bool valid = checkSquare(index);
 
     //reset the square to blank
-    if (potential != BLANK){
-        board[index].val = BLANK;
-    }
+    board[index].val = BLANK;
 
     return valid;
 }
 
 bool Sudoku::assignSquare(const uint8_t index, const uint8_t val){
+    if (index >= SIZE*SIZE){
+        printf("Error: Index %u is out of bounds\n", index);
+        return false;
+    }
+    //Only change the square if it is blank
+    if (board[index].val != BLANK){
+        return false;
+    }
     //Check that val is a valid input at valid index
-    if (val > 0 && val <= BLANK && index < SIZE*SIZE){
+    if (val > 0 && val <= SIZE){
         board[index].val = val;
 
         //We want to to keep possibles when backtracking
@@ -149,6 +173,16 @@ bool Sudoku::assignSquare(const uint8_t index, const uint8_t val){
     }
 }
 
+bool Sudoku::assignBlankSquare(const uint8_t index){
+    if (index >= SIZE*SIZE){
+        printf("Error: Index %u is out of bounds\n", index);
+        return false;
+    }
+    
+    board[index].val = BLANK;
+    return true;
+}
+
 
 Sudoku Sudoku::operator=(const Sudoku s){
     logical = s.logical;
@@ -164,7 +198,7 @@ void Sudoku::print() const{
     printHelper(board_initial);
     printf("\nOutput:");
     printHelper(board);
-    printf("\nSteps: %u", steps);
+    printf("\nSteps: %u\n", steps);
 }
 
 //Prints board to stdout
@@ -219,14 +253,16 @@ bool Sudoku::solveBacktrack(){
             }
             else{
                 //Revert back to initial state
-                assignSquare(index, BLANK);
+                assignBlankSquare(index);
             }
         }
     }
     return false;
 }
 
+//TODO: Implement new solve methods and utilize solver_type to determine which method to use
 bool Sudoku::solve(){
+    //Avoid trying to solve illogical board
     if (!logical){
         return false;
     }

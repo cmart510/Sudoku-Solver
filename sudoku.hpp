@@ -10,6 +10,7 @@
 #define SIZE 9 //size of Sudoku
 #define TILE_SIZE 3 //size of a tile
 
+//Used to control what solve method to use
 typedef enum {
     NONE,
     RULES,
@@ -65,18 +66,20 @@ class Sudoku {
     vector<square> board_initial;
     
     //Algorithms that iterate rows, columns, and tiles and perfrom func on each element
-    //Return false if func returns false
+    //Return false if any result of func returns false
     bool eachRow(const uint8_t index, const function<bool(uint8_t, vector<square>&)> func);
     bool eachCol(const uint8_t index, const function<bool(uint8_t, vector<square>&)> func);
     bool eachTile(const uint8_t index, const function<bool(uint8_t, vector<square>&)> func);
 
-    //Check if square is valid
-    //Solved squares are the only time potential is BLANK
-    bool checkSquare(const uint8_t index, const uint8_t potential = BLANK);
+    //Check if square current value is valid
+    bool checkSquare(const uint8_t index);
+    //Check if blank square is valid with a potential value
+    bool checkSquare(const uint8_t index, const uint8_t potential);
 
-    //Assigns a value to a square and removes it from possible values of related squares
-    //Returns true if successful
+    //Assigns a value to a blank square and removes it from possible values of related squares
     bool assignSquare(const uint8_t index, const uint8_t val);
+    //Assigns blank to a square
+    bool assignBlankSquare(const uint8_t index);
 
     //Solve function(s)
     bool solveBacktrack();
