@@ -1,4 +1,4 @@
-#include "sudoku.hpp"
+#include "sudoku/sudoku.hpp"
 
 int main(int argc, char *argv[]){
 
