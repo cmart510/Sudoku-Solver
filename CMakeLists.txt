@@ -14,10 +14,3 @@ add_subdirectory(src)
 add_subdirectory(app)
 
 
-
-
-#add_library(Sudoku_libs sudoku.cpp sudoku.hpp)
-
-#add_executable(SudokuSolver sudoku_solver.cpp)
-
-#target_link_libraries(SudokuSolver Sudoku_libs)
