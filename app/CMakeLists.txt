@@ -1,0 +1,3 @@
+add_executable(SudokuSolver sudoku_solver.cpp)
+target_compile_features(SudokuSolver PRIVATE cxx_std_17)
+target_link_libraries(SudokuSolver Sudoku)

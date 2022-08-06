@@ -1,4 +1,4 @@
-#include "sudoku.hpp"
+#include "sudoku/sudoku.hpp"
 
 Sudoku::Sudoku(ifstream &in, const SolverType solver_type) : solver_type(solver_type) {
     constructHelper(in);

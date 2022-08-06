@@ -1,5 +1,7 @@
 *.code-workspace
+*.vscode
 SudokuSolver*
+build
 *exe
 *.o
 *.gch
