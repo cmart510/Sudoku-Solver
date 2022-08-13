@@ -51,13 +51,18 @@ class Sudoku {
     Sudoku(ifstream &in);
     Sudoku(ifstream &in, const SolverType solver_type);
     bool isLogical() const { return logical; }
+    SolverType getSolverType() const { return solver_type; }
+    bool setSolverType(const SolverType solver_type) { this->solver_type = solver_type; return true; }
+    vector<square> getBoard() const { return board; }
     void print() const;
     bool solve();
+
+    Sudoku operator=(const Sudoku s);
 
     private:
     void constructHelper(ifstream &in);
     vector<square> board;
-    bool logical = true;
+    bool logical = false;
 
     unsigned int steps = 0;
     SolverType solver_type = NONE;
@@ -85,6 +90,5 @@ class Sudoku {
     bool solveBacktrack();
 
     //Helper functions
-    Sudoku operator=(const Sudoku s);
     void printHelper(const vector<square> board) const;
 };
