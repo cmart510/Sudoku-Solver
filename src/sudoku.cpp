@@ -1,11 +1,15 @@
 #include "sudoku/sudoku.hpp"
 
 Sudoku::Sudoku(ifstream &in, const SolverType solver_type) : solver_type(solver_type) {
-    constructHelper(in);
+    if (in.is_open()) {
+        constructHelper(in);
+    }
 }
 
 Sudoku::Sudoku(ifstream &in){
-    constructHelper(in);
+    if (in.is_open()) {
+        constructHelper(in);
+    }
 }
 
 void Sudoku::constructHelper(ifstream &in){
@@ -20,8 +24,7 @@ void Sudoku::constructHelper(ifstream &in){
         }
     }
     if (board.size() != SIZE*SIZE){
-        printf("Error: Sudoku file is not the correct size\n");
-        logical = false;
+        printf("Error: Sudoku file is not the correct size. Got %lu, expected %lu.\n", board.size(), SIZE*SIZE);
         return;
     }
     //Copy the input to the initial board
@@ -33,7 +36,6 @@ void Sudoku::constructHelper(ifstream &in){
     for (uint8_t i = 0; i < SIZE*SIZE; ++i){
         if (board[i].val <= SIZE){
             if (!checkSquare(i)){
-                logical = false;
                 printf("Error: Sudoku default cell %u is not valid\n", i);
                 return;
             }
@@ -45,7 +47,6 @@ void Sudoku::constructHelper(ifstream &in){
                 }
             }
             if (board[i].possible.size() == 0){
-                logical = false;
                 printf("Error: Sudoku cell %u has no possible inputs\n", i);
                 return;
             }
@@ -54,6 +55,8 @@ void Sudoku::constructHelper(ifstream &in){
             }
         }
     }
+    //If it gets here no errors were found
+    logical = true;
 }
 
 bool Sudoku::eachRow(const uint8_t index, const function<bool(uint8_t, vector<square>&)> func){
@@ -186,10 +189,10 @@ bool Sudoku::assignBlankSquare(const uint8_t index){
 
 Sudoku Sudoku::operator=(const Sudoku s){
     logical = s.logical;
-    for (uint8_t i = 0; i < SIZE*SIZE; ++i){
-        board[i] = s.board[i];
-        board_initial[i] = s.board_initial[i];
-    }
+    board = s.board;
+    board_initial = s.board_initial;
+    steps = s.steps;
+    solver_type = s.solver_type;
     return *this;
 }
 
