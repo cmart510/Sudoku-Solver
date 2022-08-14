@@ -2,8 +2,8 @@
 
 namespace sudoku {
 
-    Sudoku::Sudoku(std::ifstream &in, const SolverType solver_type) : Sudoku(in){
-        this->solver_type = solver_type;
+    Sudoku::Sudoku(std::ifstream &in, const SolveMethod solver) : Sudoku(in){
+        this->solver = solver;
     }
 
     Sudoku::Sudoku(std::ifstream &in){
@@ -81,18 +81,18 @@ namespace sudoku {
     bool Sudoku::eachBox(const uint8_t index, const std::function<bool(uint8_t, std::vector<Square>&)> func){
         uint8_t row = index / number_of_element_values;
         uint8_t col = index % number_of_element_values;
-        uint8_t tile = (row / box_size)*box_size + (col / box_size);
+        uint8_t box = (row / box_size)*box_size + (col / box_size);
 
-        uint8_t tile_index = ((row % box_size)*box_size + (col %box_size)); 
+        uint8_t boxIndex = ((row % box_size)*box_size + (col %box_size)); 
         for (uint8_t i = 0; i < number_of_element_values; ++i){
-            //Location in current tiles
-            uint8_t tileRow = i / box_size;
-            uint8_t tileCol = i % box_size;
+            //Location in current box
+            uint8_t boxRow = i / box_size;
+            uint8_t boxCol = i % box_size;
             //Location in grid
-            uint8_t realRow = tileRow + (tile/box_size)*box_size;
-            uint8_t realCol = tileCol + (tile%box_size)*box_size;
+            uint8_t realRow = boxRow + (box/box_size)*box_size;
+            uint8_t realCol = boxCol + (box%box_size)*box_size;
             //Skip if current square and check function
-            if (i != tile_index && !func(realRow*number_of_element_values + realCol, grid)){
+            if (i != boxIndex && !func(realRow*number_of_element_values + realCol, grid)){
                 return false;
             }
         }
@@ -104,7 +104,7 @@ namespace sudoku {
             printf("Error: Index %u is out of bounds\n", index);
             return false;
         }
-        //compare index to row, col, and tile
+        //compare index to row, col, and box
         //Returns true if the compared squares are logical
         auto func = [index] (uint8_t targ_index, std::vector<Square> &grid){
             return grid[index].element != grid[targ_index].element;
@@ -152,7 +152,7 @@ namespace sudoku {
             grid[index].element = val;
 
             //We want to to keep possibles when backtracking
-            if (solver_type == BACKTRACK){
+            if (solver == BACKTRACK){
                 return true;
             }
 
@@ -179,12 +179,11 @@ namespace sudoku {
         return true;
     }
 
-
     Sudoku Sudoku::operator=(const Sudoku s){
         logical = s.logical;
         grid = s.grid;
         steps = s.steps;
-        solver_type = s.solver_type;
+        solver = s.solver;
         return *this;
     }
 
@@ -212,16 +211,6 @@ namespace sudoku {
                 }
                 printf("\n| ");
             }
-
-            // if (printGivens){
-            //     if (grid[i].isGiven()){
-            //         printf("%u ", grid[i].element);
-            //     }
-            //     else{
-            //         printf("%c ", blank_input_element_value);
-            //     }
-            // }
-
             
             if (grid[i].element == blank_element_value || (printGivens && !grid[i].isGiven())){
                 printf("%c ", blank_input_element_value);
@@ -234,19 +223,19 @@ namespace sudoku {
     }
 
     bool Sudoku::solveBacktrack(){
-        solver_type = BACKTRACK;
+        solver = BACKTRACK;
         ++steps;
         //Find the first blank square, if end of grid is reached, soduko is solved
         uint8_t index;
-        auto cur_blank = find_if(grid.begin(), grid.end(), [] (Square s){
+        auto curBlank = find_if(grid.begin(), grid.end(), [] (Square s){
             return s.element == blank_element_value;
         });
 
-        if (cur_blank == grid.end()){
+        if (curBlank == grid.end()){
             return true;
         }
         else{
-            index = cur_blank - grid.begin();
+            index = curBlank - grid.begin();
         }
 
         //Try each possible value
@@ -265,7 +254,7 @@ namespace sudoku {
         return false;
     }
 
-    //TODO: Implement new solve methods and utilize solver_type to determine which method to use
+    //TODO: Implement new solve methods and utilize solver to determine which method to use
     bool Sudoku::solve(){
         //Avoid trying to solve illogical grid
         if (!logical){

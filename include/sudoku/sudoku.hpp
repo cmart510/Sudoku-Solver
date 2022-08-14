@@ -15,7 +15,7 @@ namespace sudoku{
         NONE,
         RULES,
         BACKTRACK
-    } SolverType;
+    } SolveMethod;
 
     // using namespace std;
 
@@ -61,10 +61,10 @@ namespace sudoku{
         public:
         Sudoku() = default;
         Sudoku(std::ifstream &in);
-        Sudoku(std::ifstream &in, const SolverType solver_type);
+        Sudoku(std::ifstream &in, const SolveMethod solver);
         bool isLogical() const { return logical; }
-        SolverType getSolverType() const { return solver_type; }
-        bool setSolverType(const SolverType solver_type) { this->solver_type = solver_type; return true; }
+        SolveMethod getSolverType() const { return solver; }
+        bool setSolverType(const SolveMethod solver) { this->solver = solver; return true; }
         std::vector<Square> getBoard() const { return grid; }
         void printGrid() const;
         bool solve();
@@ -76,9 +76,9 @@ namespace sudoku{
         bool logical = false;
 
         unsigned int steps = 0;
-        SolverType solver_type = NONE;
+        SolveMethod solver = NONE;
         
-        //Algorithms that iterate rows, columns, and tiles and perfrom func on each element
+        //Algorithms that iterate rows, columns, and boxes and perfrom func on each element
         //Return false if any result of func returns false
         bool eachRow(const uint8_t index, const std::function<bool(uint8_t, std::vector<Square>&)> func);
         bool eachCol(const uint8_t index, const std::function<bool(uint8_t, std::vector<Square>&)> func);
