@@ -1,5 +1,8 @@
 #include "sudoku/sudoku.hpp"
 
+using namespace std;
+using namespace sudoku;
+
 int main(int argc, char *argv[]){
 
     string filename = "sudoku.txt";
@@ -37,7 +40,7 @@ int main(int argc, char *argv[]){
     
     if (!sudoku.isLogical()){
         printf("Error: Sudoku is not logical\n");
-        sudoku.print();
+        sudoku.printGrid();
         return 0;
     }
     //solve Sudoku
@@ -48,6 +51,6 @@ int main(int argc, char *argv[]){
         printf("Sudoku is not solvable\n");
     }
 
-    sudoku.print();
+    sudoku.printGrid();
     return 1;
 }
