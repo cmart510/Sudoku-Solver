@@ -12,19 +12,16 @@ namespace sudoku {
                 char c = in.get();
                 //rn limited by using a char.
                 if (c > '0' && c <= '9'){
-                    grid.push_back(Square(c - '0'));
+                    grid.push_back(Square(c - '0', true));
                 }
                 else if (c == blank_input_element_value){
-                    grid.push_back(Square(blank_element_value));
+                    grid.push_back(Square());
                 }
             }
             if (grid.size() != grid_size){
                 printf("Error: Sudoku file is not the correct size. Got %lu, expected %d.\n", grid.size(), grid_size);
                 return;
             }
-            //Copy the input to the initial grid
-            //Right now only used to print at the end of the program
-            grid_initial = grid;
 
             //Check if the Sudoku is solvable and fill out possibles
             //Possibles are not needed for brute force, but can speed it up
@@ -186,7 +183,6 @@ namespace sudoku {
     Sudoku Sudoku::operator=(const Sudoku s){
         logical = s.logical;
         grid = s.grid;
-        grid_initial = s.grid_initial;
         steps = s.steps;
         solver_type = s.solver_type;
         return *this;
@@ -194,14 +190,14 @@ namespace sudoku {
 
     void Sudoku::printGrid() const{
         printf("\nInput:");
-        printGridStdout(grid_initial);
+        printGridStdout(grid, true);
         printf("\nOutput:");
         printGridStdout(grid);
         printf("\nSteps: %u\n", steps);
     }
 
     //Prints grid to stdout
-    void Sudoku::printGridStdout(const std::vector<Square> grid) const{
+    void Sudoku::printGridStdout(const std::vector<Square> grid, const bool printGivens) const{
         printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~");
         uint8_t rowSplit = -1; //buffer the first increment
         for (uint8_t i = 0; i < grid.size(); ++i){
@@ -216,8 +212,18 @@ namespace sudoku {
                 }
                 printf("\n| ");
             }
+
+            // if (printGivens){
+            //     if (grid[i].isGiven()){
+            //         printf("%u ", grid[i].element);
+            //     }
+            //     else{
+            //         printf("%c ", blank_input_element_value);
+            //     }
+            // }
+
             
-            if (grid[i].element == blank_element_value){
+            if (grid[i].element == blank_element_value || (printGivens && !grid[i].isGiven())){
                 printf("%c ", blank_input_element_value);
             }
             else{

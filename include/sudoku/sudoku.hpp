@@ -32,12 +32,16 @@ namespace sudoku{
         public:
         uint8_t element = blank_element_value;
         std::unordered_set<uint8_t> possible;
+        bool isGiven() const { return given; }
+        bool given = false;
         Square() = default;
         Square(const uint8_t val){
             this->element = val;
         }
-        Square(const uint8_t val, const std::unordered_set<uint8_t> possible){
-            this->element = val;
+        Square(const uint8_t val, const bool given) : Square(val){
+            this->given = given;
+        }
+        Square(const uint8_t val, const std::unordered_set<uint8_t> possible) : Square(val){
             this->possible = possible;
         }
         bool removePossible(const uint8_t val) {
@@ -74,9 +78,6 @@ namespace sudoku{
         unsigned int steps = 0;
         SolverType solver_type = NONE;
         
-        //Copy of input for comparison after solving
-        std::vector<Square> grid_initial;
-        
         //Algorithms that iterate rows, columns, and tiles and perfrom func on each element
         //Return false if any result of func returns false
         bool eachRow(const uint8_t index, const std::function<bool(uint8_t, std::vector<Square>&)> func);
@@ -97,7 +98,7 @@ namespace sudoku{
         bool solveBacktrack();
 
         //Helper functions
-        void printGridStdout(const std::vector<Square> grid) const;
+        void printGridStdout(const std::vector<Square> grid, const bool printGivens = false) const;
     };
 
 } //End namespace sudoku
