@@ -2,7 +2,7 @@
 
 namespace sudoku {
 
-    Sudoku::Sudoku(std::ifstream &in, const SolveMethod solver) : Sudoku(in){
+    Sudoku::Sudoku(std::ifstream &in, const SolveMethod& solver) : Sudoku(in){
         this->solver = solver;
     }
 
@@ -52,7 +52,7 @@ namespace sudoku {
         }
     }
 
-    bool Sudoku::eachRow(const uint8_t index, const std::function<bool(uint8_t, std::vector<Square>&)> func){
+    bool Sudoku::eachRow(const uint8_t& index, const std::function<bool(uint8_t, std::vector<Square>&)>& func){
         uint8_t row = index / number_of_element_values;
         uint8_t col = index % number_of_element_values;
 
@@ -65,7 +65,7 @@ namespace sudoku {
         return true;
     }
 
-    bool Sudoku::eachCol(const uint8_t index, const std::function<bool(uint8_t, std::vector<Square>&)> func){
+    bool Sudoku::eachCol(const uint8_t& index, const std::function<bool(uint8_t, std::vector<Square>&)>& func){
         uint8_t row = index / number_of_element_values;
         uint8_t col = index % number_of_element_values;
 
@@ -78,7 +78,7 @@ namespace sudoku {
         return true;
     }
 
-    bool Sudoku::eachBox(const uint8_t index, const std::function<bool(uint8_t, std::vector<Square>&)> func){
+    bool Sudoku::eachBox(const uint8_t& index, const std::function<bool(uint8_t, std::vector<Square>&)>& func){
         uint8_t row = index / number_of_element_values;
         uint8_t col = index % number_of_element_values;
         uint8_t box = (row / box_size)*box_size + (col / box_size);
@@ -99,7 +99,7 @@ namespace sudoku {
         return true;
     }
 
-    bool Sudoku::checkSquare(const uint8_t index){
+    bool Sudoku::checkSquare(const uint8_t& index){
         if (index >= grid_size){
             printf("Error: Index %u is out of bounds\n", index);
             return false;
@@ -114,7 +114,7 @@ namespace sudoku {
         return eachRow(index, func) && eachCol(index, func) && eachBox(index, func);
     }
 
-    bool Sudoku::checkSquare(const uint8_t index, const uint8_t potential){
+    bool Sudoku::checkSquare(const uint8_t& index, const uint8_t& potential){
         if (index >= grid_size){
             printf("Error: Index %u is out of bounds\n", index);
             return false;
@@ -138,7 +138,7 @@ namespace sudoku {
         return valid;
     }
 
-    bool Sudoku::assignSquare(const uint8_t index, const uint8_t val){
+    bool Sudoku::assignSquare(const uint8_t& index, const uint8_t& val){
         if (index >= grid_size){
             printf("Error: Index %u is out of bounds\n", index);
             return false;
@@ -169,7 +169,7 @@ namespace sudoku {
         }
     }
 
-    bool Sudoku::assignBlankSquare(const uint8_t index){
+    bool Sudoku::assignBlankSquare(const uint8_t& index){
         if (index >= grid_size){
             printf("Error: Index %u is out of bounds\n", index);
             return false;
@@ -177,14 +177,6 @@ namespace sudoku {
         
         grid[index].element = blank_element_value;
         return true;
-    }
-
-    Sudoku Sudoku::operator=(const Sudoku s){
-        logical = s.logical;
-        grid = s.grid;
-        steps = s.steps;
-        solver = s.solver;
-        return *this;
     }
 
     void Sudoku::printGrid() const{
@@ -196,7 +188,7 @@ namespace sudoku {
     }
 
     //Prints grid to stdout
-    void Sudoku::printGridStdout(const std::vector<Square> grid, const bool printGivens) const{
+    void Sudoku::printGridStdout(const std::vector<Square>& grid, const bool& printGivens) const{
         printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~");
         uint8_t rowSplit = -1; //buffer the first increment
         for (uint8_t i = 0; i < grid.size(); ++i){
