@@ -1,9 +1,12 @@
 #include "sudoku/sudoku.hpp"
 
+using namespace std;
+using namespace sudoku;
+
 int main(int argc, char *argv[]){
 
     string filename = "sudoku.txt";
-    SolverType solver_type = BACKTRACK;
+    SolveMethod solver = BACKTRACK;
 
     for (int i = 0; i < argc; ++i){
         string option = argv[i];
@@ -11,10 +14,10 @@ int main(int argc, char *argv[]){
             filename = argv[i+1];
         }
         if (option == "-b"){
-            solver_type = BACKTRACK;
+            solver = BACKTRACK;
         }
         if (option == "-r"){
-            solver_type = RULES;
+            solver = RULES;
         }
         if (option == "-h"){
             printf("Usage: %s [-f filename] [-b] [-r]\n", argv[0]);
@@ -33,11 +36,11 @@ int main(int argc, char *argv[]){
         printf("Error: could not open file %s\n", filename.c_str());
         return 0;
     }
-    Sudoku sudoku(input, solver_type);
+    Sudoku sudoku(input, solver);
     
     if (!sudoku.isLogical()){
         printf("Error: Sudoku is not logical\n");
-        sudoku.print();
+        sudoku.printGrid();
         return 0;
     }
     //solve Sudoku
@@ -48,6 +51,6 @@ int main(int argc, char *argv[]){
         printf("Sudoku is not solvable\n");
     }
 
-    sudoku.print();
+    sudoku.printGrid();
     return 1;
 }
