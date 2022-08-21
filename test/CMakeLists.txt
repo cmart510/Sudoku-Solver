@@ -15,6 +15,7 @@ FetchContent_MakeAvailable(googletest)
 
 #Test file inputs
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test-inputs/sudoku-test1.txt ${CMAKE_CURRENT_BINARY_DIR}/sudoku-test1.txt COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test-inputs/sudoku-test1-solved.txt ${CMAKE_CURRENT_BINARY_DIR}/sudoku-test1-solved.txt COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test-inputs/sudoku-test-blank.txt ${CMAKE_CURRENT_BINARY_DIR}/sudoku-test-blank.txt COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test-inputs/sudoku-test-invalid.txt ${CMAKE_CURRENT_BINARY_DIR}/sudoku-test-invalid.txt COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test-inputs/sudoku-test-complete.txt ${CMAKE_CURRENT_BINARY_DIR}/sudoku-test-complete.txt COPYONLY)

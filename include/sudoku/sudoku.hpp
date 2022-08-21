@@ -63,21 +63,14 @@ namespace sudoku{
         bool addPossible(const uint8_t& val){
             return possibles.insert(val).second;
         }
-        bool removePossible(const uint8_t& val) {
-            if (possibles.erase(val))
-                return true;
-            return false;
+        void removePossible(const uint8_t& val) {
+            possibles.erase(val);
         }
 
         //What if checked between possible filling?
-        bool checkPossibles() {
-            if (element == blank_element_value){
-                if (possibles.size() == 0){
-                    return false;
-                }
-                if (possibles.size() == 1){
-                    this->element = *possibles.begin();
-                }
+        bool checkPossibles() const {
+            if (element == blank_element_value && possibles.size() == 0){
+                return false;
             }
             return true;
         }
@@ -99,25 +92,10 @@ namespace sudoku{
         Sudoku() = default;
         Sudoku(std::ifstream &in);
         Sudoku(std::ifstream &in, const SolveMethod& solver);
+
         bool isLogical() const { return logical; }
         SolveMethod getSolverType() const { return solver; }
         bool setSolverType(const SolveMethod& solver) { this->solver = solver; return true; }
-        std::vector<Square> getBoard() const { return grid; }
-        void printGrid() const;
-        bool solve();
-
-        private:
-        std::vector<Square> grid;
-        bool logical = false;
-
-        unsigned int steps = 0;
-        SolveMethod solver = NONE;
-        
-        //Algorithms that iterate rows, columns, and boxes and perfrom func on each element
-        //Return false if any result of func returns false
-        bool eachRow(const uint8_t& index, const std::function<bool(uint8_t, std::vector<Square>&)>& func);
-        bool eachCol(const uint8_t& index, const std::function<bool(uint8_t, std::vector<Square>&)>& func);
-        bool eachBox(const uint8_t& index, const std::function<bool(uint8_t, std::vector<Square>&)>& func);
 
         //Check if square current value is valid
         bool checkSquare(const uint8_t& index);
@@ -127,8 +105,23 @@ namespace sudoku{
         //Assigns a value to a blank square and removes it from possible values of related squares
         bool assignSquare(const uint8_t& index, const uint8_t& val);
 
-        //Assigns blank to a square
-        // bool assignBlankSquare(const uint8_t& index);
+        std::vector<Square> getGrid() const { return grid; }
+        void printGrid() const;
+        bool solve();
+
+        //Algorithms that iterate rows, columns, and boxes and perfrom func on each element
+        //Return false if any result of func returns false
+        bool eachInRow(const uint8_t& index, const std::function<bool(uint8_t, std::vector<Square>&)>& func);
+        bool eachInCol(const uint8_t& index, const std::function<bool(uint8_t, std::vector<Square>&)>& func);
+        bool eachInBox(const uint8_t& index, const std::function<bool(uint8_t, std::vector<Square>&)>& func);
+
+        private:
+        std::vector<Square> grid;
+        bool logical = false;
+
+        unsigned int steps = 0;
+        SolveMethod solver = NONE;
+        
 
         //Solve function(s)
         bool solveBacktrack();

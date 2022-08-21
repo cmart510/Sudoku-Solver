@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "sudoku/sudoku.hpp"
+#include <queue>
 
 using namespace std;
 using namespace sudoku;
@@ -62,14 +63,14 @@ TEST_F(SquareTest, PossiblesTests) {
     EXPECT_EQ(s3.getPossibles(), possibles_compare) << "Possibles set to {2, 3, 7} failed";
     EXPECT_TRUE(s1.addPossible(1)) << "Add possible 1 failed";
     EXPECT_EQ(s1.getPossibles().size(), 1) << "Possible size not 1 for blank square after adding possible";
-    EXPECT_FALSE(s1.removePossible(2)) << "Remove possible 2 succeeded when not possible";
+    s1.removePossible(2);
+    EXPECT_EQ(s1.getPossibles().size(), 1) << "Possible size not 1 after attemopting to remove invalid value";
     EXPECT_TRUE(s1.addPossible(2)) << "Add second possible failed";
     EXPECT_EQ(s1.getPossibles().size(), 2) << "Possible size not 2 for blank square after adding second possible";
     EXPECT_TRUE(s1.checkPossibles()) << "Check possibles on blank square with possibles failed";
-    EXPECT_TRUE(s1.removePossible(1)) << "Remove possible 1 failed";
+    s1.removePossible(1);
     EXPECT_EQ(s1.getPossibles().size(), 1) << "Possible size not 1 for blank square after removing possible";
     EXPECT_TRUE(s1.checkPossibles()) << "Check possibles on blank square with one possible failed";
-    EXPECT_EQ(s1.getElement(), 2) << "Element not set after checking possibles with only one possible";
 
     //Remove all
     s3.removeAllPossibles();
@@ -84,7 +85,7 @@ TEST(SudokuInputTest, emptyFile){
     ASSERT_TRUE(input.is_open()) << "Failed to open sudoku-test-empty.txt";
     Sudoku s1(input, BACKTRACK);
     EXPECT_FALSE(s1.isLogical()) << "Empty file logical not FALSE";
-    ASSERT_EQ(s1.getBoard().size(), 0) << "Empty file board not empty";
+    ASSERT_EQ(s1.getGrid().size(), 0) << "Empty file board not empty";
 }
 
 
@@ -94,7 +95,7 @@ TEST(SudokuInputTest, invalidFile){
     ASSERT_TRUE(input.is_open()) << "Failed to open sudoku-test-invalid.txt";
     Sudoku s1(input, BACKTRACK);
     EXPECT_FALSE(s1.isLogical()) << "Invalid file logical not FALSE";
-    ASSERT_EQ(s1.getBoard().size(), 0) << "Invalid file board not empty";
+    ASSERT_EQ(s1.getGrid().size(), 0) << "Invalid file board not empty";
 }
 
 TEST(SudokuInputTest, toolarge){
@@ -103,7 +104,7 @@ TEST(SudokuInputTest, toolarge){
     ASSERT_TRUE(input.is_open()) << "Failed to open sudoku-test-too-large.txt";
     Sudoku s1(input, BACKTRACK);
     EXPECT_TRUE(s1.isLogical()) << "Too large file logical not TRUE";
-    ASSERT_EQ(s1.getBoard().size(), grid_size) << "Too large file board not size 81";
+    ASSERT_EQ(s1.getGrid().size(), grid_size) << "Too large file board not size 81";
 }
 
 TEST(SudokuInputTest, toosmall){
@@ -112,7 +113,7 @@ TEST(SudokuInputTest, toosmall){
     ASSERT_TRUE(input.is_open()) << "Failed to open sudoku-test-too-small.txt";
     Sudoku s1(input, BACKTRACK);
     EXPECT_FALSE(s1.isLogical()) << "Too small file logical not FALSE";
-    ASSERT_LT(s1.getBoard().size(), grid_size) << "Too small file board not smaller than size 81";
+    ASSERT_LT(s1.getGrid().size(), grid_size) << "Too small file board not smaller than size 81";
 }
 
 TEST(SudokuInputTest, blank){
@@ -121,7 +122,7 @@ TEST(SudokuInputTest, blank){
     ASSERT_TRUE(input.is_open()) << "Failed to open sudoku-test-blank.txt";
     Sudoku s1(input, BACKTRACK);
     EXPECT_TRUE(s1.isLogical()) << "Blank file logical not TRUE";
-    ASSERT_EQ(s1.getBoard().size(), grid_size) << "Blank file board not size 81";
+    ASSERT_EQ(s1.getGrid().size(), grid_size) << "Blank file board not size 81";
     EXPECT_TRUE(s1.solve()) << "Blank file solve not TRUE";
 }
 
@@ -131,13 +132,13 @@ TEST(SudokuInputTest, complete){
     ASSERT_TRUE(input.is_open()) << "Failed to open sudoku-test-complete.txt";
     Sudoku s1(input, BACKTRACK);
     EXPECT_TRUE(s1.isLogical()) << "Complete file logical not TRUE";
-    ASSERT_EQ(s1.getBoard().size(), grid_size) << "Complete file board not size 81";
+    ASSERT_EQ(s1.getGrid().size(), grid_size) << "Complete file board not size 81";
     EXPECT_TRUE(s1.solve()) << "Complete file solve not TRUE";
 }
 
 
 //Sudoku class tests with valid input
-class SudokuTestValidInput : public ::testing::Test {
+class SudokuTestConstructors : public ::testing::Test {
     protected:
     void SetUp() override {
         input.open("sudoku-test1.txt");
@@ -146,44 +147,137 @@ class SudokuTestValidInput : public ::testing::Test {
     ifstream input;
 };
 
-TEST_F(SudokuTestValidInput, DefaultConstructor) {
+TEST_F(SudokuTestConstructors, DefaultConstructor) {
     Sudoku s1;
     EXPECT_FALSE(s1.isLogical()) << "Default constructor logical not FALSE";
     EXPECT_EQ(s1.getSolverType(), NONE) << "Default constructor solver type not NONE";
-    ASSERT_EQ(s1.getBoard().size(), 0) << "Default constructor board not empty";
+    ASSERT_EQ(s1.getGrid().size(), 0) << "Default constructor board not empty";
 }
 
-TEST_F(SudokuTestValidInput, StreamConstructor){
+TEST_F(SudokuTestConstructors, StreamConstructor){
     Sudoku s1(input);
     EXPECT_TRUE(s1.isLogical()) << "Stream constructor logical not TRUE";
     EXPECT_EQ(s1.getSolverType(), NONE) << "Stream constructor solver type not NONE";
-    ASSERT_EQ(s1.getBoard().size(), grid_size) << "Stream constructor board not size 81";
+    ASSERT_EQ(s1.getGrid().size(), grid_size) << "Stream constructor board not size 81";
 }
 
-TEST_F(SudokuTestValidInput, StreamMethodConstructor){
+TEST_F(SudokuTestConstructors, StreamMethodConstructor){
     Sudoku s1(input, BACKTRACK);
     EXPECT_TRUE(s1.isLogical()) << "Stream and Method constructor logical not TRUE";
     EXPECT_EQ(s1.getSolverType(), BACKTRACK) << "Stream and Method constructor solver type not BACKTRACK";
-    ASSERT_EQ(s1.getBoard().size(), grid_size) << "Stream and Method constructor board not size 81";
+    ASSERT_EQ(s1.getGrid().size(), grid_size) << "Stream and Method constructor board not size 81";
 }
 
-TEST_F(SudokuTestValidInput, AssignmentOperator){
-    Sudoku s1(input, BACKTRACK);
-    Sudoku s2 = s1;
-    EXPECT_TRUE(s2.isLogical()) << "Assignment operator logical not TRUE";
-    EXPECT_EQ(s2.getSolverType(), BACKTRACK) << "Assignment operator solver type not BACKTRACK";
-    ASSERT_EQ(s2.getBoard().size(), grid_size) << "Assignment operator board not size 81";
+class SudokuTestValidInput : public ::testing::Test {
+    protected:
+    void SetUp() override {
+        input.open("sudoku-test1.txt");
+        ASSERT_TRUE(input.is_open()) << "Failed to open sudoku-test1.txt"; 
+        s1 = Sudoku(input);
+    }
+    Sudoku s1;
+    ifstream input;
+};
 
-    s1 = Sudoku();
-    EXPECT_FALSE(s1.isLogical()) << "Assignment operator original logical not FALSE after reset";
-    EXPECT_EQ(s1.getSolverType(), NONE) << "Assignment operator original solver type not NONE after reset";
-    ASSERT_EQ(s1.getBoard().size(), 0) << "Assignment operator original board not empty after reset";
+TEST_F(SudokuTestValidInput, EachInFuncs){
+    auto false_func = [](uint8_t i, std::vector<Square> &grid){ return false; };
+    EXPECT_FALSE(s1.eachInRow(4, false_func)) << "EachInRow not false for false function";
+    EXPECT_FALSE(s1.eachInCol(4, false_func)) << "EachInCol not false for false function";
+    EXPECT_FALSE(s1.eachInBox(4, false_func)) << "EachInBox not false for false function";
+
+    auto true_func = [](uint8_t i, std::vector<Square> &grid){ return true; };
+    EXPECT_TRUE(s1.eachInRow(4, true_func)) << "EachInRow not true for true function";
+    EXPECT_TRUE(s1.eachInCol(4, true_func)) << "EachInCol not true for true function";
+    EXPECT_TRUE(s1.eachInBox(4, true_func)) << "EachInBox not true for true function";
+
+    uint8_t b = blank_element_value;
+    queue<uint8_t> row({b, 9, b, 5, 4, 1, 8, b, 7});
+    queue<uint8_t> col({b, b, 4, 9, 3, 7, 6, 5, 8});
+    queue<uint8_t> box({b, 4, 1, b, 3, b, 8, 7, 9});
+    
+    auto row_func = [&row](uint8_t i, std::vector<Square> &grid){ row.pop(); return row.front() == grid[i].getElement(); };
+    EXPECT_TRUE(s1.eachInRow(31, row_func)) << "EachInRow not true for row function";
+    auto col_func = [&col](uint8_t i, std::vector<Square> &grid){ col.pop(); return col.front() == grid[i].getElement(); };
+    EXPECT_TRUE(s1.eachInCol(31, col_func)) << "EachInCol not true for col function";
+    auto box_func = [&box](uint8_t i, std::vector<Square> &grid){ box.pop(); return box.front() == grid[i].getElement(); };
+    EXPECT_TRUE(s1.eachInBox(31, box_func)) << "EachInBox not true for box function";
+  
+}
+
+TEST_F(SudokuTestValidInput, CheckSquare){
+
+    EXPECT_FALSE(s1.checkSquare(grid_size)) << "Check square with too large index did not return false";
+    EXPECT_FALSE(s1.checkSquare(grid_size, 5)) << "Check square with too large index did not return false";
+    EXPECT_FALSE(s1.checkSquare(5, number_of_element_values+2)) << "Check square with potential out of range did not return false";
+    EXPECT_FALSE(s1.checkSquare(4, 4)) << "Check square with potential conflicting in row does not return false";
+    EXPECT_FALSE(s1.checkSquare(4, 8)) << "Check square with potential conflicting in col does not return false";
+    EXPECT_FALSE(s1.checkSquare(4, 6)) << "Check square with potential conflicting in box does not return false";
+    EXPECT_TRUE(s1.getGrid()[4].isBlank()) << "Failed checkSquares with potential set value and left it";
+
+    EXPECT_TRUE(s1.checkSquare(4, 1)) << "Check square with no conflictions did not return true";
+    EXPECT_TRUE(s1.getGrid()[4].isBlank()) << "Success checkSquares with potential set value and left it";
+    EXPECT_TRUE(s1.checkSquare(5)) << "Check square with valid value did not return true";
+
+}
+
+TEST_F(SudokuTestValidInput, AssignSquare){
+
+    //Use to test with BACKTRACK on
+    Sudoku s2 = s1;
+
+    EXPECT_FALSE(s1.assignSquare(grid_size, 5)) << "Assign square with too large index did not return false";
+    EXPECT_FALSE(s1.assignSquare(4, number_of_element_values+2)) << "Assign square with potential out of range did not return false";
+    EXPECT_FALSE(s1.assignSquare(5, 4)) << "Assing square to given value succeeded";
+    EXPECT_TRUE(s1.getGrid()[4].isBlank()) << "Failed assignSquare with potential set value and left it";
+    EXPECT_EQ(s1.getGrid()[5].getElement(), 5) << "Failed assignSquare to given value changed value";
+
+    EXPECT_TRUE(s1.assignSquare(4, 1)) << "Assign square with no conflictions did not return true";
+
+    
+    s2.setSolverType(BACKTRACK);
+
+    //Get current number of possibles from related squares
+    vector<uint8_t> backtrackPossiblesRelated;
+
+    auto getPossiblesBacktrack = [&backtrackPossiblesRelated](uint8_t i, std::vector<Square> &grid){
+        backtrackPossiblesRelated.push_back(grid[i].getPossibles().size()); return true;
+    };
+
+    s2.eachInRow(4, getPossiblesBacktrack);
+    s2.eachInCol(4, getPossiblesBacktrack);
+    s2.eachInBox(4, getPossiblesBacktrack);
+
+    EXPECT_EQ(s2.getGrid()[4].getPossibles().size(), 2) << "Start possibles not correct value";
+    EXPECT_TRUE(s2.assignSquare(4, 1)) << "Assign square with no conflictions did not return true in BACKTRACK";
+    for (auto i: s2.getGrid()[4].getPossibles()){
+        printf("%d ", i);
+    }
+    EXPECT_EQ(s2.getGrid()[4].getPossibles().size(), 2) << "Assign square removed possibles for set square in BACKTRACK";
+
+    auto curpossible = backtrackPossiblesRelated.begin();
+
+    auto comparePossiblesBacktrack = [&curpossible](uint8_t i, std::vector<Square> &grid){
+        EXPECT_EQ(*curpossible, grid[i].getPossibles().size()) << "Possibles not equal for backtrack";
+        curpossible++; return true;
+    };
+
+    s2.eachInRow(4, comparePossiblesBacktrack);
+    s2.eachInCol(4, comparePossiblesBacktrack);
+    s2.eachInBox(4, comparePossiblesBacktrack);
 }
 
 TEST_F(SudokuTestValidInput, Solve){
-    Sudoku s1(input, BACKTRACK);
+    ifstream solution;
+    solution.open("sudoku-test1-solved.txt");
+    ASSERT_TRUE(solution.is_open()) << "Failed to open sudoku-test-complete.txt";
+    Sudoku solved(solution);
+
     EXPECT_TRUE(s1.solve()) << "Solve not TRUE";
     EXPECT_TRUE(s1.isLogical()) << "Logical not TRUE after successful solve";
+    for (int i = 0; i < grid_size; i++){
+        EXPECT_EQ(s1.getGrid()[i].getElement(), solved.getGrid()[i].getElement()) << "Solve not correct after successful solve";
+    }
+    // EXPECT_TRUE(s1.getGrid() == solved.getGrid()) << "Solve not equal to solution";
     Sudoku s2;
     EXPECT_FALSE(s2.isLogical()) << "Logical not FALSE on empty board";
     EXPECT_FALSE(s2.solve()) << "Solve not FALSE on empty board";
@@ -201,8 +295,8 @@ TEST_F(SudokuTestAccessors, SolverType){
 }
 
 TEST_F(SudokuTestAccessors, Board){
-    vector<Square> board = s1.getBoard();
+    vector<Square> board = s1.getGrid();
     EXPECT_EQ(board.size(), 0) << "bard not size 0";
     board.push_back(Square(11));
-    EXPECT_GT(board.size(), s1.getBoard().size()) << "board not larger than original after modification";
+    EXPECT_GT(board.size(), s1.getGrid().size()) << "board not larger than original after modification";
 }
