@@ -1,6 +1,5 @@
 #include "gtest/gtest.h"
 #include "sudoku/sudoku.hpp"
-#include <queue>
 
 using namespace std;
 using namespace sudoku;
@@ -191,15 +190,19 @@ TEST_F(SudokuTestValidInput, EachInFuncs){
     EXPECT_TRUE(s1.eachInBox(4, true_func)) << "EachInBox not true for true function";
 
     uint8_t b = blank_element_value;
-    queue<uint8_t> row({b, 9, b, 5, 4, 1, 8, b, 7});
-    queue<uint8_t> col({b, b, 4, 9, 3, 7, 6, 5, 8});
-    queue<uint8_t> box({b, 4, 1, b, 3, b, 8, 7, 9});
+    vector<uint8_t> row = {9, b, 5, 4, 1, 8, b, 7};
+    vector<uint8_t> col = {b, 4, 9, 3, 7, 6, 5, 8};
+    vector<uint8_t> box = {4, 1, b, 3, b, 8, 7, 9};
+
+    auto curRow = row.begin();
+    auto curCol = col.begin();
+    auto curBox = box.begin();
     
-    auto row_func = [&row](uint8_t i, std::vector<Square> &grid){ row.pop(); return row.front() == grid[i].getElement(); };
+    auto row_func = [&curRow](uint8_t i, std::vector<Square> &grid){ return *curRow++ == grid[i].getElement(); };
     EXPECT_TRUE(s1.eachInRow(31, row_func)) << "EachInRow not true for row function";
-    auto col_func = [&col](uint8_t i, std::vector<Square> &grid){ col.pop(); return col.front() == grid[i].getElement(); };
+    auto col_func = [&curCol](uint8_t i, std::vector<Square> &grid){ return *curCol++ == grid[i].getElement(); };
     EXPECT_TRUE(s1.eachInCol(31, col_func)) << "EachInCol not true for col function";
-    auto box_func = [&box](uint8_t i, std::vector<Square> &grid){ box.pop(); return box.front() == grid[i].getElement(); };
+    auto box_func = [&curBox](uint8_t i, std::vector<Square> &grid){ return *curBox++ == grid[i].getElement(); };
     EXPECT_TRUE(s1.eachInBox(31, box_func)) << "EachInBox not true for box function";
   
 }
@@ -249,16 +252,12 @@ TEST_F(SudokuTestValidInput, AssignSquare){
 
     EXPECT_EQ(s2.getGrid()[4].getPossibles().size(), 2) << "Start possibles not correct value";
     EXPECT_TRUE(s2.assignSquare(4, 1)) << "Assign square with no conflictions did not return true in BACKTRACK";
-    for (auto i: s2.getGrid()[4].getPossibles()){
-        printf("%d ", i);
-    }
     EXPECT_EQ(s2.getGrid()[4].getPossibles().size(), 2) << "Assign square removed possibles for set square in BACKTRACK";
 
     auto curpossible = backtrackPossiblesRelated.begin();
 
     auto comparePossiblesBacktrack = [&curpossible](uint8_t i, std::vector<Square> &grid){
-        EXPECT_EQ(*curpossible, grid[i].getPossibles().size()) << "Possibles not equal for backtrack";
-        curpossible++; return true;
+        EXPECT_EQ(*curpossible++, grid[i].getPossibles().size()) << "Possibles not equal for backtrack"; return true;
     };
 
     s2.eachInRow(4, comparePossiblesBacktrack);
