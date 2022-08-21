@@ -26,25 +26,23 @@ namespace sudoku {
             //Check if the Sudoku is solvable and fill out possibles
             //Possibles are not needed for brute force, but can speed it up
             for (uint8_t i = 0; i < grid_size; ++i){
-                if (grid[i].element <= number_of_element_values){
-                    if (!checkSquare(i)){
-                        printf("Error: Sudoku default cell %u is not valid\n", i);
-                        return;
-                    }
-                }
-                else{ //if the square is blank, fill out possibles
+
+                //If blank, fill out possibles
+                if(grid[i].isBlank()){
                     for (uint8_t j = 1; j <= number_of_element_values; ++j){
                         if (checkSquare(i, j)){
-                            grid[i].possible.insert(j);
+                            grid[i].addPossible(j);
                         }
                     }
-                    if (grid[i].possible.size() == 0){
+                    //Check if blank square has no possible values
+                    if (!grid[i].checkPossibles()){
                         printf("Error: Sudoku cell %u has no possible inputs\n", i);
                         return;
                     }
-                    else if (grid[i].possible.size() == 1){
-                        assignSquare(i, *(grid[i].possible.begin()));
-                    }
+                }
+                else if (!checkSquare(i)){
+                    printf("Error: Sudoku default cell %u is not valid\n", i);
+                    return;
                 }
             }
             //If it gets here no errors were found
@@ -107,7 +105,7 @@ namespace sudoku {
         //compare index to row, col, and box
         //Returns true if the compared squares are logical
         auto func = [index] (uint8_t targ_index, std::vector<Square> &grid){
-            return grid[index].element != grid[targ_index].element;
+            return grid[index].getElement() != grid[targ_index].getElement();
         };
 
         //Check if the square is valid
@@ -123,17 +121,16 @@ namespace sudoku {
             printf("Error: Potential %u is out of bounds\n", potential);
             return false;
         }
-        //Only change the square if it is blank
-        if (grid[index].element != blank_element_value){
+        
+        //Set test value, only success potential is valid and not blank
+        if (!grid[index].setElement(potential)){
             return false;
         }
-        //Set test value
-        grid[index].element = potential;
         
         bool valid = checkSquare(index);
 
         //reset the square to blank
-        grid[index].element = blank_element_value;
+        grid[index].setToOriginalValue();
 
         return valid;
     }
@@ -144,40 +141,37 @@ namespace sudoku {
             return false;
         }
         //Only change the square if it is blank
-        if (grid[index].element != blank_element_value){
+        if (!grid[index].isBlank()){
             return false;
         }
-        //Check that val is a valid input at valid index
-        if (val > 0 && val <= number_of_element_values){
-            grid[index].element = val;
-
-            //We want to to keep possibles when backtracking
-            if (solver == BACKTRACK){
-                return true;
-            }
-
-            //Since we are assigning a value, no squares associated can have val as a possible
-            auto func = [val] (uint8_t targ_index, std::vector<Square> &grid){
-                return grid[targ_index].removePossible(val);
-            };
-
-            return eachRow(index, func) && eachCol(index, func) && eachBox(index, func);
-        }
-        else{
+            
+        if (!grid[index].setElement(val)){
             printf("Error: Invalid input %u at index %u\n", val, index);
             return false;
         }
+        //We want to to keep possibles when backtracking
+        if (solver == BACKTRACK){
+            return true;
+        }
+
+        //Since we are assigning a value, no squares associated can have val as a possible
+        auto func = [val] (uint8_t targ_index, std::vector<Square> &grid){
+            return grid[targ_index].removePossible(val);
+        };
+
+        return eachRow(index, func) && eachCol(index, func) && eachBox(index, func);
+        
     }
 
-    bool Sudoku::assignBlankSquare(const uint8_t& index){
-        if (index >= grid_size){
-            printf("Error: Index %u is out of bounds\n", index);
-            return false;
-        }
+    // bool Sudoku::assignBlankSquare(const uint8_t& index){
+    //     if (index >= grid_size){
+    //         printf("Error: Index %u is out of bounds\n", index);
+    //         return false;
+    //     }
         
-        grid[index].element = blank_element_value;
-        return true;
-    }
+    //     grid[index].element = blank_element_value;
+    //     return true;
+    // }
 
     void Sudoku::printGrid() const{
         printf("\nInput:");
@@ -204,11 +198,11 @@ namespace sudoku {
                 printf("\n| ");
             }
             
-            if (grid[i].element == blank_element_value || (printGivens && !grid[i].isGiven())){
+            if (grid[i].isBlank() || (printGivens && !grid[i].isGiven())){
                 printf("%c ", blank_input_element_value);
             }
             else{
-                printf("%u ", grid[i].element);
+                printf("%u ", grid[i].getElement());
             }
         }
         printf("|\n~~~~~~~~~~~~~~~~~~~~~~~~~\n");
@@ -220,7 +214,7 @@ namespace sudoku {
         //Find the first blank square, if end of grid is reached, soduko is solved
         uint8_t index;
         auto curBlank = find_if(grid.begin(), grid.end(), [] (Square s){
-            return s.element == blank_element_value;
+            return s.isBlank();
         });
 
         if (curBlank == grid.end()){
@@ -231,7 +225,7 @@ namespace sudoku {
         }
 
         //Try each possible value
-        for (uint8_t val : grid[index].possible){
+        for (uint8_t val : grid[index].getPossibles()){
             //Check square checks ensures validity before assigning value
             if (checkSquare(index, val) && assignSquare(index, val)){
                 if (solveBacktrack()){
@@ -239,7 +233,7 @@ namespace sudoku {
                 }
                 else{
                     //Revert back to initial state
-                    assignBlankSquare(index);
+                    grid[index].setToOriginalValue();
                 }
             }
         }

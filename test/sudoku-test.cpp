@@ -10,8 +10,8 @@ class SquareTest : public ::testing::Test {
     protected:
     void SetUp() override {
         s1 = Square();
-        s2 = Square(1);
-        s3 = Square(2, {1, 2, 3});
+        s2 = Square(1, true);
+        s3 = Square(2, {2, 3, 7});
     }
     Square s1;
     Square s2;
@@ -20,27 +20,60 @@ class SquareTest : public ::testing::Test {
 
 TEST_F(SquareTest, Constructor) {
 
-    EXPECT_EQ(s1.element, blank_element_value) << "Default constructor value not blank";
-    EXPECT_EQ(s1.possible.size(), 0) << "Default constructor possible not empty";
+    EXPECT_EQ(s1.getElement(), blank_element_value) << "Default constructor value not blank";
+    EXPECT_EQ(s1.getPossibles().size(), 0) << "Default constructor possible not empty";
+    EXPECT_FALSE(s1.isGiven()) << "Default constructor given not false";
+    EXPECT_FALSE(s1.checkPossibles()) << "Check possibles on blank square with no possibles succeeded";
     
-    EXPECT_EQ(s2.element, 1) << "Constructor with value (1) does not set value to 1";
-    EXPECT_EQ(s2.possible.size(), 0) << "Constructor with value (1) does not set possible to empty";
+    EXPECT_EQ(s2.getElement(), 1) << "Constructor with value (1) does not set value to 1";
+    EXPECT_EQ(s2.getPossibles().size(), 0) << "Constructor with value (1) does not set possible to empty";
+    EXPECT_TRUE(s2.isGiven()) << "Constructor with value (1, true) does not set given to true";
+    EXPECT_TRUE(s2.checkPossibles()) << "Check possibles on valued square failed";
     
-    EXPECT_EQ(s3.element, 2) << "Constructor with value (2, {1, 2, 3}) does not set value to 2";
-    EXPECT_EQ(s3.possible.size(), 3) << "Constructor with value (2, {1, 2, 3}) does not set possible to {1, 2, 3}";
+    EXPECT_EQ(s3.getElement(), 2) << "Constructor with value (2, {1, 2, 3}) does not set value to 2";
+    EXPECT_EQ(s3.getPossibles().size(), 3) << "Constructor with value (2, {1, 2, 3}) does not set possible to {1, 2, 3}";
+    EXPECT_FALSE(s3.isGiven()) << "Constructor with value (2, {1, 2, 3}) does not set given to false";
+    EXPECT_TRUE(s3.checkPossibles()) << "Check possibles on valued square with possibles failed";
 }
 
-TEST_F(SquareTest, Assignment) {
-    s1 = s2;
-    EXPECT_EQ(s1.element, s2.element) << "Assignment operator does not set value";
-    EXPECT_EQ(s1.possible.size(), s2.possible.size()) << "Assignment operator does not set possible size correctly";
-    EXPECT_EQ(s1.possible, s2.possible) << "Assignment operator does not set possible values correctly";
+TEST_F(SquareTest, SettersAndGetters) {
+
+    //Blank square
+    EXPECT_TRUE(s1.isBlank()) << "isBlank() returns false for blank square";
+    EXPECT_TRUE(s1.setElement(7)) << "Set blank element to 7 failed";
+    EXPECT_EQ(s1.getElement(), 7) << "get element did return 7 after set element to 7";
+    EXPECT_FALSE(s1.setElement(0)) << "Set element to to invalud 0 succeeded";
+    EXPECT_FALSE(s1.setElement(10)) << "Set element to invalid 10 succeeded";
+    s1.setToOriginalValue();
+    EXPECT_TRUE(s1.isBlank()) << "Reset element original blank value failed";
+
+    //Valued square
+    EXPECT_TRUE(s2.setElement(4)) << "Set element to 4 failed";
+    EXPECT_EQ(s2.getElement(), 4) << "Set element to original value failed";
+    s2.setToOriginalValue();
+    EXPECT_EQ(s2.getElement(), 1) << "Set element to original number value failed";
 }
 
-TEST_F(SquareTest, RemovePossible) {
-    EXPECT_TRUE(s3.removePossible(1)) << "Remove possible failed to remove 1";
-    EXPECT_FALSE(s3.removePossible(4)) << "Remove possible failed to not remove 4";
-    EXPECT_EQ(s3.possible.size(), 2) << "Remove possible does not remove 1 from possible";
+TEST_F(SquareTest, PossiblesTests) {
+
+    std::unordered_set<uint8_t> possibles_compare = {2, 3, 7};
+
+    //Check possibles
+    EXPECT_EQ(s3.getPossibles(), possibles_compare) << "Possibles set to {2, 3, 7} failed";
+    EXPECT_TRUE(s1.addPossible(1)) << "Add possible 1 failed";
+    EXPECT_EQ(s1.getPossibles().size(), 1) << "Possible size not 1 for blank square after adding possible";
+    EXPECT_FALSE(s1.removePossible(2)) << "Remove possible 2 succeeded when not possible";
+    EXPECT_TRUE(s1.addPossible(2)) << "Add second possible failed";
+    EXPECT_EQ(s1.getPossibles().size(), 2) << "Possible size not 2 for blank square after adding second possible";
+    EXPECT_TRUE(s1.checkPossibles()) << "Check possibles on blank square with possibles failed";
+    EXPECT_TRUE(s1.removePossible(1)) << "Remove possible 1 failed";
+    EXPECT_EQ(s1.getPossibles().size(), 1) << "Possible size not 1 for blank square after removing possible";
+    EXPECT_TRUE(s1.checkPossibles()) << "Check possibles on blank square with one possible failed";
+    EXPECT_EQ(s1.getElement(), 2) << "Element not set after checking possibles with only one possible";
+
+    //Remove all
+    s3.removeAllPossibles();
+    EXPECT_EQ(s3.getPossibles().size(), 0) << "RemoveAllPossibles does not remove all possibles";
 }
 
 //Sudoku class tests

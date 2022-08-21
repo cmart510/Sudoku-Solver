@@ -28,25 +28,69 @@ namespace sudoku{
     //Square class represents a square on the grid
     class Square {
         public:
-        uint8_t element = blank_element_value;
-        std::unordered_set<uint8_t> possible;
-        bool given = false;
         bool isGiven() const { return given; }
         Square() = default;
         Square(const uint8_t& val){
             this->element = val;
+            this->originalValue = val;
         }
         Square(const uint8_t& val, const bool& given) : Square(val){
             this->given = given;
         }
         Square(const uint8_t& val, const std::unordered_set<uint8_t>& possible) : Square(val){
-            this->possible = possible;
+            this->possibles = possible;
+        }
+        void setToOriginalValue(){
+            this->element = this->originalValue;
+        }
+        bool setElement(const uint8_t& val){
+            //Valid non blank value
+            if (val > 0 && val <= number_of_element_values){
+                this->element = val;
+                return true;
+            }
+            return false;
+        }
+        uint8_t getElement() const {
+            return this->element;
+        }
+        bool isBlank() const {
+            return this->element == blank_element_value;
+        }
+        std::unordered_set<uint8_t> getPossibles() const {
+            return this->possibles;
+        }
+        bool addPossible(const uint8_t& val){
+            return possibles.insert(val).second;
         }
         bool removePossible(const uint8_t& val) {
-            if (possible.erase(val))
+            if (possibles.erase(val))
                 return true;
             return false;
         }
+
+        //What if checked between possible filling?
+        bool checkPossibles() {
+            if (element == blank_element_value){
+                if (possibles.size() == 0){
+                    return false;
+                }
+                if (possibles.size() == 1){
+                    this->element = *possibles.begin();
+                }
+            }
+            return true;
+        }
+        void removeAllPossibles() {
+            possibles.clear();
+        }
+
+        private:
+        uint8_t element = blank_element_value;
+        uint8_t originalValue = blank_element_value;
+        std::unordered_set<uint8_t> possibles;
+        bool given = false;
+
     };
 
     //Sudoku class represents a Sudoku grid filled with grid_size squares
@@ -82,8 +126,9 @@ namespace sudoku{
 
         //Assigns a value to a blank square and removes it from possible values of related squares
         bool assignSquare(const uint8_t& index, const uint8_t& val);
+
         //Assigns blank to a square
-        bool assignBlankSquare(const uint8_t& index);
+        // bool assignBlankSquare(const uint8_t& index);
 
         //Solve function(s)
         bool solveBacktrack();
